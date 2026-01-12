@@ -1,1 +1,68 @@
 @import "tailwindcss";
+
+:root {
+   --bg: 255 255 255;
+   --fg: 15 23 42;
+   --muted: 100 116 139;
+   --border: 226 232 240;
+   --primary: 16 185 129; /* emerald */
+   --primary-dark: 4 120 87;
+}
+
+@media (prefers-color-scheme: dark) {
+   :root {
+      --bg: 2 6 23;
+      --fg: 248 250 252;
+      --muted: 148 163 184;
+      --border: 30 41 59;
+      --primary: 52 211 153;
+      --primary-dark: 16 185 129;
+   }
+}
+
+html,
+body {
+   height: 100%;
+}
+
+body {
+   background: rgb(var(--bg));
+   color: rgb(var(--fg));
+   font-family: var(--font-bn), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+      Roboto, Helvetica, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* Global selection “marker” */
+::selection,
+*::selection {
+   /* Fallback first (in case CSS vars/color syntax fail) */
+   background-color: rgb(16 185 129 / 0.45) !important;
+   background: rgb(16 185 129 / 0.45) !important;
+   /* Prefer theme emerald */
+   background-color: rgb(var(--primary) / 0.45) !important;
+   /* Modern look (soft highlight that blends with the page bg) */
+   background: color-mix(in srgb, rgb(var(--primary)) 42%, rgb(var(--bg))) !important;
+   color: rgb(var(--fg)) !important;
+   text-shadow: 0 0 0.35px rgb(0 0 0 / 0.25);
+}
+
+::-moz-selection,
+*::-moz-selection {
+   background-color: rgb(16 185 129 / 0.45) !important;
+   background: rgb(16 185 129 / 0.45) !important;
+   background-color: rgb(var(--primary) / 0.45) !important;
+   background: color-mix(in srgb, rgb(var(--primary)) 42%, rgb(var(--bg))) !important;
+   color: rgb(var(--fg)) !important;
+   text-shadow: 0 0 0.35px rgb(0 0 0 / 0.25);
+}
+
+/* Strong selection marker for admin rich-text editor */
+.md-editor textarea::selection {
+   background: rgba(var(--primary), 0.55) !important;
+   color: rgb(var(--fg)) !important;
+}
+
+.md-editor textarea::-moz-selection {
+   background: rgba(var(--primary), 0.55) !important;
+   color: rgb(var(--fg)) !important;
+}
