@@ -6,8 +6,20 @@ import { PostContent } from "@/components/PostContent";
 import { PostMeta } from "@/components/PostMeta";
 import { PostShareBar } from "@/components/PostShareBar";
 import { ErrorState } from "@/components/States";
-import { getPostBySlug } from "@/lib/api/posts";
+import { getPostBySlug, getPosts } from "@/lib/api/posts";
 import { stripMarkdown } from "@/lib/format";
+
+function getPrevNext(posts: Array<{ slug: string; title: string }>, slug: string) {
+    const index = posts.findIndex((p) => p.slug === slug);
+    if (index < 0) return { prev: null as (typeof posts)[number] | null, next: null as (typeof posts)[number] | null };
+
+    // posts are sorted latest-first; so:
+    // - "Next" means newer (index - 1)
+    // - "Previous" means older (index + 1)
+    const next = index > 0 ? posts[index - 1] : null;
+    const prev = index < posts.length - 1 ? posts[index + 1] : null;
+    return { prev, next };
+}
 
 export async function generateMetadata({
     params,
@@ -48,8 +60,19 @@ export default async function PostPage({
     const p = await params;
 
     let post;
+    let prevNext: { prev: { slug: string; title: string } | null; next: { slug: string; title: string } | null } = {
+        prev: null,
+        next: null,
+    };
     try {
         post = await getPostBySlug(p.slug);
+
+        // For previous/next navigation
+        const list = await getPosts();
+        prevNext = getPrevNext(
+            list.map((x) => ({ slug: x.slug, title: x.title })),
+            post.slug
+        );
     } catch (e) {
         return (
             <ErrorState
@@ -109,6 +132,50 @@ export default async function PostPage({
 
                     <div className="mt-10 border-t border-[rgb(var(--border))] pt-6">
                         <PostShareBar title={post.title} slug={post.slug} />
+                    </div>
+
+                    <div className="mt-6 border-t border-[rgb(var(--border))] pt-6">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            {prevNext.prev ? (
+                                <Link
+                                    href={`/posts/${prevNext.prev.slug}`}
+                                    className="group rounded-2xl border border-[rgb(var(--border))] bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-50 dark:bg-slate-950/30 dark:hover:bg-emerald-950/20"
+                                    aria-label={`পূর্ববর্তী পোস্ট: ${prevNext.prev.title}`}
+                                >
+                                    <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                        ← পূর্ববর্তী পোস্ট
+                                    </div>
+                                    <div className="mt-1 line-clamp-2 text-sm font-bold text-slate-900 group-hover:text-emerald-800 dark:text-slate-50 dark:group-hover:text-emerald-200">
+                                        {prevNext.prev.title}
+                                    </div>
+                                </Link>
+                            ) : (
+                                <div className="rounded-2xl border border-[rgb(var(--border))] bg-white/50 p-4 text-left text-sm text-slate-500 dark:bg-slate-950/20 dark:text-slate-400">
+                                    <div className="text-xs font-semibold">← পূর্ববর্তী পোস্ট</div>
+                                    <div className="mt-1">আর কোনো পোস্ট নেই</div>
+                                </div>
+                            )}
+
+                            {prevNext.next ? (
+                                <Link
+                                    href={`/posts/${prevNext.next.slug}`}
+                                    className="group rounded-2xl border border-[rgb(var(--border))] bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-50 dark:bg-slate-950/30 dark:hover:bg-emerald-950/20 sm:text-right"
+                                    aria-label={`পরবর্তী পোস্ট: ${prevNext.next.title}`}
+                                >
+                                    <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                        পরবর্তী পোস্ট →
+                                    </div>
+                                    <div className="mt-1 line-clamp-2 text-sm font-bold text-slate-900 group-hover:text-emerald-800 dark:text-slate-50 dark:group-hover:text-emerald-200">
+                                        {prevNext.next.title}
+                                    </div>
+                                </Link>
+                            ) : (
+                                <div className="rounded-2xl border border-[rgb(var(--border))] bg-white/50 p-4 text-left text-sm text-slate-500 dark:bg-slate-950/20 dark:text-slate-400 sm:text-right">
+                                    <div className="text-xs font-semibold">পরবর্তী পোস্ট →</div>
+                                    <div className="mt-1">আর কোনো পোস্ট নেই</div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </article>

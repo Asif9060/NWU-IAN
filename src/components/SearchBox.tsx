@@ -7,10 +7,11 @@ import { useEffect, useMemo, useState } from "react";
 import { endpoints } from "@/lib/api/endpoints";
 import { clientGetJson } from "@/lib/api/client";
 import { cn } from "@/lib/cn";
+import { stripMarkdown } from "@/lib/format";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import type { BlogPost } from "@/types/blog";
 
-export function SearchBox({ className }: { className?: string }) {
+export function SearchBox({ className, inputId = "search" }: { className?: string; inputId?: string }) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -70,11 +71,11 @@ export function SearchBox({ className }: { className?: string }) {
 
     return (
         <div className={cn("relative", className)}>
-            <label className="sr-only" htmlFor="search">
+            <label className="sr-only" htmlFor={inputId}>
                 ব্লগ খুঁজুন
             </label>
             <input
-                id="search"
+                id={inputId}
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 onFocus={() => setOpen(true)}
@@ -104,7 +105,7 @@ export function SearchBox({ className }: { className?: string }) {
                                     {p.title}
                                 </div>
                                 <div className="mt-1 line-clamp-2 text-xs text-slate-600 dark:text-slate-300">
-                                    {p.excerpt ?? ""}
+                                    {stripMarkdown(p.excerpt ?? "")}
                                 </div>
                             </Link>
                         ))}

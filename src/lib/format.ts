@@ -9,10 +9,7 @@ export function formatBnDate(iso?: string | null) {
 }
 
 export function toExcerpt(text: string, maxWords = 120) {
-   const clean = text
-      .replace(/\s+/g, " ")
-      .replace(/[#*_>`\[\]()/\\-]/g, " ")
-      .trim();
+   const clean = stripMarkdown(text).replace(/\s+/g, " ").trim();
 
    const words = clean.split(" ");
    if (words.length <= maxWords) return clean;
@@ -24,10 +21,7 @@ export function formatBnNumber(value: number) {
 }
 
 export function estimateReadingMinutes(text: string) {
-   const clean = String(text ?? "")
-      .replace(/\s+/g, " ")
-      .replace(/[#*_>`\[\]()/\\-]/g, " ")
-      .trim();
+   const clean = stripMarkdown(text).replace(/\s+/g, " ").trim();
 
    const words = clean ? clean.split(" ").filter(Boolean).length : 0;
    // বাংলা কনটেন্টের জন্য একটি reasonable ডিফল্ট (≈ 170 wpm)
