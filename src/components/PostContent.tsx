@@ -17,6 +17,13 @@ function getText(node: React.ReactNode): string {
 }
 
 export function PostContent({ content }: { content: string }) {
+    const normalizedContent = String(content ?? "")
+        // Older editor versions accidentally inserted escaped quotes into HTML attributes.
+        // Normalize so rehype-raw can parse the HTML instead of showing it as text.
+        .replace(/<div\s+align=\\"(left|center|right|justify)\\">/g, '<div align="$1">')
+        .replace(/<p\s+align=\\"(left|center|right|justify)\\">/g, '<p align="$1">')
+        .replace(/<span\s+align=\\"(left|center|right|justify)\\">/g, '<span align="$1">');
+
     const sanitizeSchema: Schema = {
         ...defaultSchema,
         tagNames: Array.from(new Set([...(defaultSchema.tagNames ?? []), "div", "span"])),
@@ -43,6 +50,66 @@ export function PostContent({ content }: { content: string }) {
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw, [rehypeSanitize, sanitizeSchema]]}
                 components={{
+                    div: ({ className, ...props }) => {
+                        const align = (props as unknown as { align?: string }).align;
+                        return (
+                            <div
+                                className={cn(
+                                    align === "left"
+                                        ? "text-left"
+                                        : align === "center"
+                                          ? "text-center"
+                                          : align === "right"
+                                            ? "text-right"
+                                            : align === "justify"
+                                              ? "text-justify"
+                                              : null,
+                                    className,
+                                )}
+                                {...props}
+                            />
+                        );
+                    },
+                    p: ({ className, ...props }) => {
+                        const align = (props as unknown as { align?: string }).align;
+                        return (
+                            <p
+                                className={cn(
+                                    align === "left"
+                                        ? "text-left"
+                                        : align === "center"
+                                          ? "text-center"
+                                          : align === "right"
+                                            ? "text-right"
+                                            : align === "justify"
+                                              ? "text-justify"
+                                              : null,
+                                    className,
+                                )}
+                                {...props}
+                            />
+                        );
+                    },
+                    span: ({ className, ...props }) => {
+                        const align = (props as unknown as { align?: string }).align;
+                        return (
+                            <span
+                                className={cn(
+                                    align === "left"
+                                        ? "text-left"
+                                        : align === "center"
+                                          ? "text-center"
+                                          : align === "right"
+                                            ? "text-right"
+                                            : align === "justify"
+                                              ? "text-justify"
+                                              : null,
+                                    className,
+                                )}
+                                {...props}
+                            />
+                        );
+                    },
                     h2: ({ className, ...props }) => (
                         <h2
                             className={cn(
@@ -104,7 +171,7 @@ export function PostContent({ content }: { content: string }) {
                     ),
                 }}
             >
-                {content}
+                {normalizedContent}
             </ReactMarkdown>
         </article>
     );

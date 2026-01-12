@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { endpoints } from "@/lib/api/endpoints";
@@ -14,27 +14,44 @@ import type { BlogPost } from "@/types/blog";
 export function SearchBox({ className, inputId = "search" }: { className?: string; inputId?: string }) {
     const router = useRouter();
     const pathname = usePathname();
-    const searchParams = useSearchParams();
 
-    const initial = searchParams.get("q") ?? "";
-    const [value, setValue] = useState(initial);
+    // Avoid `useSearchParams()` here; it can break prerendering unless wrapped correctly.
+    // We'll sync from window.location after mount.
+    const [value, setValue] = useState("");
     const debounced = useDebouncedValue(value, 350);
 
     const [items, setItems] = useState<BlogPost[]>([]);
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const targetUrl = useMemo(() => {
-        const sp = new URLSearchParams(searchParams.toString());
-        if (debounced.trim()) sp.set("q", debounced.trim());
-        else sp.delete("q");
-        return `${pathname}?${sp.toString()}`.replace(/\?$/, "");
-    }, [debounced, pathname, searchParams]);
+    const qValue = useMemo(() => debounced.trim(), [debounced]);
+
+    useEffect(() => {
+        // Initialize from current URL query (client-only)
+        try {
+            const sp = new URLSearchParams(window.location.search);
+            const q = sp.get("q") ?? "";
+            const t = setTimeout(() => setValue(q), 0);
+            return () => clearTimeout(t);
+        } catch {
+            // ignore
+        }
+    }, []);
 
     useEffect(() => {
         // URL আপডেট: live search experience (server component refetch হবে)
-        router.replace(targetUrl, { scroll: false });
-    }, [router, targetUrl]);
+        try {
+            const sp = new URLSearchParams(window.location.search);
+            if (qValue) sp.set("q", qValue);
+            else sp.delete("q");
+            const qs = sp.toString();
+            const url = qs ? `${pathname}?${qs}` : pathname;
+            router.replace(url, { scroll: false });
+        } catch {
+            const url = qValue ? `${pathname}?q=${encodeURIComponent(qValue)}` : pathname;
+            router.replace(url, { scroll: false });
+        }
+    }, [router, pathname, qValue]);
 
     useEffect(() => {
         const q = debounced.trim();

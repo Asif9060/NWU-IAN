@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import { NavLinks } from "@/components/NavLinks";
 import { SearchBox } from "@/components/SearchBox";
@@ -14,8 +14,10 @@ export function Navbar() {
 
     // Close mobile menu on navigation
     useEffect(() => {
-        setOpen(false);
-    }, [pathname]);
+        if (!open) return;
+        const t = setTimeout(() => setOpen(false), 0);
+        return () => clearTimeout(t);
+    }, [pathname, open]);
 
     return (
         <header className="sticky top-0 z-50 border-b border-[rgb(var(--border))] bg-white/85 backdrop-blur dark:bg-slate-950/70">
@@ -61,7 +63,9 @@ export function Navbar() {
                     <NavLinks />
 
                     <div className="ml-auto w-[22rem]">
-                        <SearchBox inputId="search-desktop" />
+                        <Suspense fallback={<SearchBoxSkeleton />}>
+                            <SearchBox inputId="search-desktop" />
+                        </Suspense>
                     </div>
                 </div>
 
@@ -75,11 +79,21 @@ export function Navbar() {
                     )}
                 >
                     <div className="mt-3 space-y-3">
-                        <SearchBox inputId="search-mobile" />
+                        <Suspense fallback={<SearchBoxSkeleton />}>
+                            <SearchBox inputId="search-mobile" />
+                        </Suspense>
                         <NavLinks variant="menu" onNavigate={() => setOpen(false)} />
                     </div>
                 </div>
             </div>
         </header>
+    );
+}
+
+function SearchBoxSkeleton() {
+    return (
+        <div className="w-full rounded-full border border-[rgb(var(--border))] bg-white/70 px-4 py-2 text-sm text-slate-500 dark:bg-slate-950/40 dark:text-slate-400">
+            খুঁজুন…
+        </div>
     );
 }

@@ -118,7 +118,7 @@ function applyActionToMarkdown(
 
     const wrapBlockHtml = (align: "left" | "center" | "right" | "justify") => {
         const sel = selected || "";
-        const open = `<div align=\"${align}\">\n`;
+        const open = `<div align="${align}">\n`;
         const close = `\n</div>`;
 
         // Toggle off if selection is already an exact alignment block.
