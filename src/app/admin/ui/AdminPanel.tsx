@@ -11,15 +11,22 @@ import { cn } from "@/lib/cn";
 import { formatBnDate, toExcerpt } from "@/lib/format";
 import { toOptimizedImageUrl } from "@/lib/images";
 import type { BlogPost, Category } from "@/types/blog";
+import type { SitePage, SitePageSlug } from "@/types/site";
 import { MarkdownEditor } from "@/components/admin/MarkdownEditor";
 
-type TabKey = "posts" | "new" | "categories";
+type TabKey = "posts" | "new" | "categories" | "pages";
 
 export function AdminPanel() {
     const [tab, setTab] = useState<TabKey>("posts");
     const [posts, setPosts] = useState<BlogPost[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [selected, setSelected] = useState<BlogPost | null>(null);
+
+    const [pageSlug, setPageSlug] = useState<SitePageSlug>("activities");
+    const [pageDraft, setPageDraft] = useState<Pick<SitePage, "title" | "content">>({
+        title: "",
+        content: "",
+    });
 
     const [busy, setBusy] = useState(false);
     const [uploadingImage, setUploadingImage] = useState(false);
@@ -60,6 +67,43 @@ export function AdminPanel() {
             setCategories(Array.isArray(cData) ? cData : []);
         } catch (e) {
             setError(e instanceof Error ? e.message : "ডাটা লোড করা যায়নি");
+        }
+    }
+
+    async function loadPage(slug: SitePageSlug) {
+        setError(null);
+        try {
+            const page = await clientGetJson<SitePage>(endpoints.adminPageBySlug(slug), {
+                cache: "no-store",
+            });
+
+            setPageDraft({
+                title: page?.title ?? "",
+                content: page?.content ?? "",
+            });
+        } catch (e) {
+            // If not found yet, allow creating it
+            setPageDraft({
+                title: slug === "activities" ? "আমাদের কার্যক্রম" : "যোগাযোগ",
+                content: "",
+            });
+        }
+    }
+
+    async function savePage() {
+        setBusy(true);
+        setMessage(null);
+        setError(null);
+        try {
+            await clientJson(endpoints.adminPageBySlug(pageSlug), "PUT", {
+                title: pageDraft.title,
+                content: pageDraft.content,
+            });
+            setMessage("পেজ আপডেট হয়েছে");
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "পেজ আপডেট করা যায়নি");
+        } finally {
+            setBusy(false);
         }
     }
 
@@ -221,6 +265,15 @@ export function AdminPanel() {
                         {selected ? "পোস্ট এডিট" : "নতুন পোস্ট"}
                     </TabButton>
                     <TabButton
+                        active={tab === "pages"}
+                        onClick={() => {
+                            setTab("pages");
+                            void loadPage(pageSlug);
+                        }}
+                    >
+                        পেজ কন্টেন্ট
+                    </TabButton>
+                    <TabButton
                         active={tab === "categories"}
                         onClick={() => setTab("categories")}
                     >
@@ -330,6 +383,84 @@ export function AdminPanel() {
                                 </div>
                             ))
                         )}
+                    </div>
+                </section>
+            ) : null}
+
+            {tab === "pages" ? (
+                <section className="rounded-2xl border border-[rgb(var(--border))] bg-white p-6 shadow-sm dark:bg-slate-950/40">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">
+                            পেজ কন্টেন্ট (ডাইনামিক)
+                        </h2>
+                        <div className="ml-auto flex flex-wrap gap-2">
+                            <TabButton
+                                active={pageSlug === "activities"}
+                                onClick={() => {
+                                    setPageSlug("activities");
+                                    void loadPage("activities");
+                                }}
+                            >
+                                আমাদের কার্যক্রম
+                            </TabButton>
+                            <TabButton
+                                active={pageSlug === "contact"}
+                                onClick={() => {
+                                    setPageSlug("contact");
+                                    void loadPage("contact");
+                                }}
+                            >
+                                যোগাযোগ
+                            </TabButton>
+                        </div>
+                    </div>
+
+                    <div className="mt-5 grid gap-4">
+                        <Field label="পেজ টাইটেল">
+                            <input
+                                value={pageDraft.title}
+                                onChange={(e) => setPageDraft((s) => ({ ...s, title: e.target.value }))}
+                                placeholder={pageSlug === "activities" ? "আমাদের কার্যক্রম" : "যোগাযোগ"}
+                                className={inputClass}
+                                disabled={busy}
+                            />
+                        </Field>
+
+                        <Field
+                            label="কনটেন্ট (Markdown)"
+                            hint="এই কনটেন্ট সরাসরি /activities বা /contact পেজে দেখাবে"
+                        >
+                            <MarkdownEditor
+                                value={pageDraft.content}
+                                onChange={(value) => setPageDraft((s) => ({ ...s, content: value }))}
+                                rows={14}
+                                placeholder={
+                                    pageSlug === "contact"
+                                        ? "আপনার যোগাযোগের তথ্য লিখুন…\n\n- ইমেইল: ...\n- ফেসবুক: ..."
+                                        : "আপনাদের কার্যক্রম সম্পর্কে বিস্তারিত লিখুন…"
+                                }
+                                minHeightClassName="min-h-[300px]"
+                            />
+                        </Field>
+
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                disabled={busy}
+                                onClick={savePage}
+                                className="inline-flex rounded-full bg-emerald-700 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60"
+                            >
+                                {busy ? "সংরক্ষণ হচ্ছে…" : "সংরক্ষণ করুন"}
+                            </button>
+                            <button
+                                type="button"
+                                disabled={busy}
+                                onClick={() => loadPage(pageSlug)}
+                                className="inline-flex rounded-full border border-[rgb(var(--border))] bg-white px-6 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-60 dark:bg-slate-950/30 dark:text-slate-100 dark:hover:bg-slate-900"
+                            >
+                                রিলোড
+                            </button>
+                        </div>
                     </div>
                 </section>
             ) : null}

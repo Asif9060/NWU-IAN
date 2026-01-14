@@ -23,3 +23,11 @@ export const updatePostSchema = z
 export const createCategorySchema = z.object({
    name: z.string().min(2, "ক্যাটাগরির নাম কমপক্ষে ২ অক্ষর হতে হবে"),
 });
+
+export const upsertSitePageSchema = z
+   .object({
+      slug: z.enum(["activities", "contact"]),
+      title: z.string().min(2, "শিরোনাম কমপক্ষে ২ অক্ষর হতে হবে"),
+      content: z.string().min(10, "কনটেন্ট কমপক্ষে ১০ অক্ষর হতে হবে"),
+   })
+   .strict();

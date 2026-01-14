@@ -5,9 +5,14 @@ export const endpoints = {
    posts: "/api/posts",
    postBySlug: (slug: string) => `/api/posts/${encodeURIComponent(slug)}`,
 
+   pages: "/api/pages",
+   pageBySlug: (slug: string) => `/api/pages/${encodeURIComponent(slug)}`,
+
    adminPosts: "/api/admin/posts",
    adminPostById: (id: string) => `/api/admin/posts/${encodeURIComponent(id)}`,
    adminUpload: "/api/admin/upload",
+
+   adminPageBySlug: (slug: string) => `/api/admin/pages/${encodeURIComponent(slug)}`,
 
    categories: "/api/categories",
 };
