@@ -8,6 +8,7 @@ import { PostShareBar } from "@/components/PostShareBar";
 import { ErrorState } from "@/components/States";
 import { getPostBySlug, getPosts } from "@/lib/api/posts";
 import { stripMarkdown } from "@/lib/format";
+import { toOptimizedImageUrl } from "@/lib/images";
 
 function getPrevNext(posts: Array<{ slug: string; title: string }>, slug: string) {
     const index = posts.findIndex((p) => p.slug === slug);
@@ -118,7 +119,7 @@ export default async function PostPage({
                         <div className="overflow-hidden rounded-2xl border border-[rgb(var(--border))] bg-slate-100 dark:bg-slate-900/40">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                                src={post.featuredImage}
+                                src={toOptimizedImageUrl(post.featuredImage, { width: 1400 })}
                                 alt={post.title}
                                 className="aspect-[16/9] w-full object-cover"
                                 loading="lazy"

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PostMeta } from "@/components/PostMeta";
 import { cn } from "@/lib/cn";
 import { stripMarkdown, toExcerpt } from "@/lib/format";
+import { toOptimizedImageUrl } from "@/lib/images";
 import type { BlogPost } from "@/types/blog";
 
 export function PostCard({ post, className }: { post: BlogPost; className?: string }) {
@@ -23,7 +24,7 @@ export function PostCard({ post, className }: { post: BlogPost; className?: stri
                     // Next/Image domain config এড়াতে সাধারণ img ব্যবহার
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                        src={post.featuredImage}
+                        src={toOptimizedImageUrl(post.featuredImage, { width: 960 })}
                         alt={post.title}
                         className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
                         loading="lazy"

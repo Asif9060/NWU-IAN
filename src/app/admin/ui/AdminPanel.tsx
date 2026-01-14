@@ -9,6 +9,7 @@ import { endpoints } from "@/lib/api/endpoints";
 import { clientGetJson, clientJson } from "@/lib/api/client";
 import { cn } from "@/lib/cn";
 import { formatBnDate, toExcerpt } from "@/lib/format";
+import { toOptimizedImageUrl } from "@/lib/images";
 import type { BlogPost, Category } from "@/types/blog";
 import { MarkdownEditor } from "@/components/admin/MarkdownEditor";
 
@@ -21,6 +22,7 @@ export function AdminPanel() {
     const [selected, setSelected] = useState<BlogPost | null>(null);
 
     const [busy, setBusy] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -64,6 +66,47 @@ export function AdminPanel() {
     useEffect(() => {
         loadAll();
     }, []);
+
+    async function uploadFeaturedImage(file: File) {
+        function isRecord(value: unknown): value is Record<string, unknown> {
+            return typeof value === "object" && value !== null;
+        }
+
+        setUploadingImage(true);
+        setMessage(null);
+        setError(null);
+
+        try {
+            const form = new FormData();
+            form.set("file", file);
+
+            const res = await fetch(endpoints.adminUpload, {
+                method: "POST",
+                body: form,
+            });
+
+            const json = (await res.json().catch(() => null)) as unknown;
+            if (!res.ok) {
+                const maybeMsg = isRecord(json) ? json.message : undefined;
+                throw new Error(typeof maybeMsg === "string" ? maybeMsg : "ইমেজ আপলোড করা যায়নি");
+            }
+            if (!isRecord(json)) {
+                throw new Error("ইমেজ আপলোড করা যায়নি");
+            }
+
+            const url = json.url;
+            if (typeof url !== "string" || !url) {
+                throw new Error("ইমেজ URL পাওয়া যায়নি");
+            }
+
+            postForm.setValue("featuredImage", url, { shouldDirty: true, shouldTouch: true });
+            setMessage("ইমেজ আপলোড হয়েছে");
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "ইমেজ আপলোড করা যায়নি");
+        } finally {
+            setUploadingImage(false);
+        }
+    }
 
     function startCreate() {
         setSelected(null);
@@ -358,13 +401,52 @@ export function AdminPanel() {
                             <FieldError message={postForm.formState.errors.excerpt?.message} />
                         </Field>
 
-                        <Field label="ফিচার্ড ইমেজ URL" hint="(ঐচ্ছিক) আপলোড নেই—সরাসরি URL দিন">
-                            <input
-                                {...postForm.register("featuredImage")}
-                                placeholder="https://..."
-                                className={inputClass}
-                            />
-                            <FieldError message={postForm.formState.errors.featuredImage?.message} />
+                        <Field label="ফিচার্ড ইমেজ" hint="(ঐচ্ছিক) ফাইল আপলোড করুন বা URL দিন">
+                            <div className="grid gap-2">
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        disabled={busy || uploadingImage}
+                                        onChange={(e) => {
+                                            const file = e.currentTarget.files?.[0];
+                                            // allow selecting same file again
+                                            e.currentTarget.value = "";
+                                            if (file) void uploadFeaturedImage(file);
+                                        }}
+                                        className={cn(
+                                            "block w-full rounded-xl border border-[rgb(var(--border))] bg-white px-3 py-2 text-sm text-slate-900 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-700 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-emerald-800",
+                                            "dark:bg-slate-950/30 dark:text-slate-50",
+                                            (busy || uploadingImage) && "opacity-70"
+                                        )}
+                                    />
+                                    {uploadingImage ? (
+                                        <div className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+                                            আপলোড হচ্ছে…
+                                        </div>
+                                    ) : null}
+                                </div>
+
+                                <input
+                                    {...postForm.register("featuredImage")}
+                                    placeholder="https://... (অথবা আপলোড করলে অটো বসবে)"
+                                    className={inputClass}
+                                />
+
+                                {postForm.watch("featuredImage") ? (
+                                    <div className="overflow-hidden rounded-xl border border-[rgb(var(--border))] bg-slate-50 dark:bg-slate-950/30">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={toOptimizedImageUrl(postForm.watch("featuredImage") as string, { width: 1200 })}
+                                            alt="Featured preview"
+                                            className="aspect-[16/9] w-full object-cover"
+                                            loading="lazy"
+                                        />
+                                    </div>
+                                ) : null}
+
+                                <FieldError message={postForm.formState.errors.featuredImage?.message} />
+                            </div>
                         </Field>
 
                         <Field label="কনটেন্ট (Markdown)" hint="হেডিং, লিস্ট, কোট, কুরআন/হাদিস ব্লক এড করা যাবে">

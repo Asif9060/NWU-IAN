@@ -2,13 +2,18 @@ import { connectMongo } from "@/lib/mongodb";
 import { Post } from "@/models/Post";
 import { created, ok, serverError, badRequest } from "@/app/api/_utils/responses";
 import { createPostSchema } from "@/app/api/_utils/validators";
+import { revalidateTag } from "next/cache";
+
+const NO_STORE_HEADERS = {
+   "Cache-Control": "no-store, max-age=0",
+} as const;
 
 // GET /api/admin/posts (draft + published)
 export async function GET() {
    try {
       await connectMongo();
       const posts = await Post.find({}).sort({ createdAt: -1 }).lean();
-      return ok(posts);
+      return ok(posts, { headers: NO_STORE_HEADERS });
    } catch (e) {
       const message = e instanceof Error ? e.message : "সার্ভার ত্রুটি";
       return serverError(message);
@@ -37,7 +42,11 @@ export async function POST(req: Request) {
          isPublished: input.isPublished ?? false,
       });
 
-      return created(doc);
+      // Ensure all pages refetch immediately
+      revalidateTag("posts", "max");
+      if (doc.slug) revalidateTag(`post:${doc.slug}`, "max");
+
+      return created(doc, { headers: NO_STORE_HEADERS });
    } catch (e) {
       const message = e instanceof Error ? e.message : "সার্ভার ত্রুটি";
       return serverError(message);

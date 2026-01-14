@@ -58,12 +58,12 @@ export function PostContent({ content }: { content: string }) {
                                     align === "left"
                                         ? "text-left"
                                         : align === "center"
-                                          ? "text-center"
-                                          : align === "right"
-                                            ? "text-right"
-                                            : align === "justify"
-                                              ? "text-justify"
-                                              : null,
+                                            ? "text-center"
+                                            : align === "right"
+                                                ? "text-right"
+                                                : align === "justify"
+                                                    ? "text-justify"
+                                                    : null,
                                     className,
                                 )}
                                 {...props}
@@ -78,12 +78,12 @@ export function PostContent({ content }: { content: string }) {
                                     align === "left"
                                         ? "text-left"
                                         : align === "center"
-                                          ? "text-center"
-                                          : align === "right"
-                                            ? "text-right"
-                                            : align === "justify"
-                                              ? "text-justify"
-                                              : null,
+                                            ? "text-center"
+                                            : align === "right"
+                                                ? "text-right"
+                                                : align === "justify"
+                                                    ? "text-justify"
+                                                    : null,
                                     className,
                                 )}
                                 {...props}
@@ -98,12 +98,12 @@ export function PostContent({ content }: { content: string }) {
                                     align === "left"
                                         ? "text-left"
                                         : align === "center"
-                                          ? "text-center"
-                                          : align === "right"
-                                            ? "text-right"
-                                            : align === "justify"
-                                              ? "text-justify"
-                                              : null,
+                                            ? "text-center"
+                                            : align === "right"
+                                                ? "text-right"
+                                                : align === "justify"
+                                                    ? "text-justify"
+                                                    : null,
                                     className,
                                 )}
                                 {...props}

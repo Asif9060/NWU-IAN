@@ -7,6 +7,7 @@ export const endpoints = {
 
    adminPosts: "/api/admin/posts",
    adminPostById: (id: string) => `/api/admin/posts/${encodeURIComponent(id)}`,
+   adminUpload: "/api/admin/upload",
 
    categories: "/api/categories",
 };

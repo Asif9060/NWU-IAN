@@ -1,5 +1,6 @@
 import { PostContent } from "@/components/PostContent";
 import { PostMeta } from "@/components/PostMeta";
+import { toOptimizedImageUrl } from "@/lib/images";
 import type { BlogPost } from "@/types/blog";
 
 export function PostExpanded({ post }: { post: BlogPost }) {
@@ -8,7 +9,7 @@ export function PostExpanded({ post }: { post: BlogPost }) {
             {post.featuredImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                    src={post.featuredImage}
+                    src={toOptimizedImageUrl(post.featuredImage, { width: 1200 })}
                     alt={post.title}
                     className="mb-4 aspect-[16/9] w-full rounded-xl object-cover"
                     loading="lazy"
