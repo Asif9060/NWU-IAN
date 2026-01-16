@@ -32,6 +32,20 @@ export default async function Home({
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
           ইসলামি সচেতনতা, নৈতিক শিক্ষা এবং সমাজকল্যাণমূলক বার্তা ছড়িয়ে দিতে আমাদের বাংলা ব্লগ।
         </p>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <a
+            href="https://islamic-ai-chatbot.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+          >
+            AI ইসলামিক চ্যাটবট
+          </a>
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            প্রশ্ন করুন — নতুন ট্যাবে খুলবে
+          </span>
+        </div>
         {q ? (
           <div className="mt-4 text-sm text-slate-700 dark:text-slate-200">
             অনুসন্ধান: <span className="font-semibold">{q}</span>

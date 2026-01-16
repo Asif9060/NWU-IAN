@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import { PostContent } from "@/components/PostContent";
-import { ErrorState } from "@/components/States";
 import { getPageBySlug } from "@/lib/api/pages";
 
 export const metadata: Metadata = {
@@ -9,27 +8,18 @@ export const metadata: Metadata = {
 };
 
 export default async function ContactPage() {
-   try {
-      const page = await getPageBySlug("contact");
+   const page = await getPageBySlug("contact");
 
-      return (
-         <div className="space-y-6">
-            <section className="rounded-2xl border border-[rgb(var(--border))] bg-white p-6 shadow-sm dark:bg-slate-950/40">
-               <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
-                  {page.title || "যোগাযোগ"}
-               </h1>
-               <div className="mt-4">
-                  <PostContent content={page.content ?? ""} />
-               </div>
-            </section>
-         </div>
-      );
-   } catch (e) {
-      return (
-         <ErrorState
-            title="পেজ লোড করা যায়নি"
-            message={e instanceof Error ? e.message : "অজানা ত্রুটি"}
-         />
-      );
-   }
+   return (
+      <div className="space-y-6">
+         <section className="rounded-2xl border border-[rgb(var(--border))] bg-white p-6 shadow-sm dark:bg-slate-950/40">
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
+               {page.title || "যোগাযোগ"}
+            </h1>
+            <div className="mt-4">
+               <PostContent content={page.content ?? ""} />
+            </div>
+         </section>
+      </div>
+   );
 }

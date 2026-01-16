@@ -81,7 +81,7 @@ export function AdminPanel() {
                 title: page?.title ?? "",
                 content: page?.content ?? "",
             });
-        } catch (e) {
+        } catch {
             // If not found yet, allow creating it
             setPageDraft({
                 title: slug === "activities" ? "আমাদের কার্যক্রম" : "যোগাযোগ",
